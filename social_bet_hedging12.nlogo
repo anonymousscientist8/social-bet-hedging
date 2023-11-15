@@ -2164,7 +2164,7 @@ modifier
 modifier
 -1
 1
-0.0
+-0.5
 0.01
 1
 NIL
@@ -2194,7 +2194,7 @@ decay
 decay
 0
 1
-0.3
+0.01
 0.01
 1
 NIL
@@ -2302,7 +2302,7 @@ share_boost
 share_boost
 0
 1
-0.33
+0.5
 0.01
 1
 NIL
@@ -2317,7 +2317,7 @@ share_decline
 share_decline
 0
 1
-0.33
+0.5
 0.01
 1
 NIL
@@ -2708,6 +2708,12 @@ NetLogo 6.2.0
     <enumeratedValueSet variable="social-inheritance2">
       <value value="false"/>
     </enumeratedValueSet>
+    <enumeratedValueSet variable="cheating">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="p_die">
+      <value value="1.0E-4"/>
+    </enumeratedValueSet>
     <enumeratedValueSet variable="limit">
       <value value="20"/>
     </enumeratedValueSet>
@@ -2718,7 +2724,17 @@ NetLogo 6.2.0
       <value value="0.01"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="modifier">
+      <value value="-0.5"/>
+      <value value="-0.4"/>
+      <value value="-0.3"/>
+      <value value="-0.2"/>
+      <value value="-0.1"/>
       <value value="0"/>
+      <value value="0.5"/>
+      <value value="0.4"/>
+      <value value="0.3"/>
+      <value value="0.2"/>
+      <value value="0.1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="discriminatory">
       <value value="50"/>
@@ -2734,6 +2750,15 @@ NetLogo 6.2.0
     </enumeratedValueSet>
     <enumeratedValueSet variable="groom_give">
       <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="need">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="extra">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="strats">
+      <value value="8"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
