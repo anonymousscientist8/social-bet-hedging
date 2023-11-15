@@ -2685,7 +2685,7 @@ NetLogo 6.2.0
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="experiment" repetitions="10" runMetricsEveryStep="true">
+  <experiment name="experiment" repetitions="1" runMetricsEveryStep="true">
     <setup>setup</setup>
     <go>go</go>
     <metric>count turtles with [color = magenta]</metric>
@@ -2715,12 +2715,7 @@ NetLogo 6.2.0
       <value value="0.95"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="decay">
-      <value value="0"/>
-      <value value="0.1"/>
-      <value value="0.2"/>
-      <value value="0.3"/>
-      <value value="0.4"/>
-      <value value="0.5"/>
+      <value value="0.01"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="modifier">
       <value value="0"/>
@@ -2730,6 +2725,15 @@ NetLogo 6.2.0
     </enumeratedValueSet>
     <enumeratedValueSet variable="threshold">
       <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="share_boost">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="share_decline">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="groom_give">
+      <value value="1"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
