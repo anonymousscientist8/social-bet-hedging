@@ -8,7 +8,7 @@ library(patchwork)
 rm(list = ls())
 
 # Load original data
-d <- read.csv("C:\\Users\\raven\\Documents\\social_bet_hedging21 experiment-spreadsheet_7jul24_1.csv", header = FALSE)
+d <- read.csv("filename\\social_bet_hedging21 experiment-spreadsheet_XXmonYY_Z.csv", header = FALSE)
 
 # create temporary data file
 temp <- data.frame(matrix(nrow = 360,ncol = 7))
@@ -21,11 +21,11 @@ for (j in 1:360) {
 }
 
 # Write file
-write.csv(temp,"C:\\Users\\raven\\Documents\\temp.csv")
+write.csv(temp,"filename\\temp.csv")
 
 #############################################################
 # Load dataframe
-strategies <-  read.csv("C:\\Users\\raven\\Documents\\strategies3.csv")
+strategies <-  read.csv("filename\\strategies3.csv")
 
 # Bootstrapping code
 # function to get 95% frequentist confidence interval of mean of vector x using classical bootstrapping
