@@ -24,16 +24,29 @@ All necessary R packages and NetLogo extensions are listed at the top of each R 
 # References
 
 G. G. Carter, D. R. Farine DR, R. J. Crisp, J. K. Vrtilek, S. P. Ripperger, R. A. Page, Development of new food-sharing relationships in vampire bats. Curr. Biol. 30,1275–1279 (2020). 
+
 G. G. Carter, L. Leffer, Social grooming in bats: are vampire bats exceptional? PLoS One. 10 (2015). 
+
 R. F. Crespo, R. J. Burns, S. B. Linhart, Load-lifting capacity of the vampire bat. J. Mammal. 51, 627–629 (1970). 
+
 U. Schmidt, U. Manske, Die Jugendentwicklung der Vampirfledermäuse (Desmodus rotundus). Z. Säugetierkd. 38, 14–33 (1972). 
+
 U. Smidt, Vampirfledermäuse : Familie Desmodontidae (Chiroptera). (Die neue Brehm-Bücherei, 1978). 
+
 G. S. Wilkinson, Reciprocal food sharing in the vampire bat. Nature. 308, 181–184 (1984). 
+
 G. S. Wilkinson, The social organization of the common vampire bat: I. pattern and cause of association. Behav. Ecol. Sociobiol. 17, 111–121 (1985). 
+
 G. S. Wilkinson, The social organization of the common vampire bat: II. Mating system, genetic structure, and relatedness. Behav. Ecol. Sociobiol. 17, 123–134 (1985). 
+
 G. G. Carter, G. S. Wilkinson, Social benefits of non-kin food sharing by female vampire bats. Proc. R. Soc. B Biol. Sci. 282 (2015).
+
 H. A. Delpietro, R. G. Russo, G. G. Carter, R. D. Lord, G. L. Delpietro, Reproductive seasonality, sex ratio and philopatry in Argentina’s common vampire bats. R. Soc. Open Sci. 4 (2017). 
+
 I. Razik, B. K. G. Brown, R. A. Page, G. G. Carter, Non-kin adoption in the common vampire bat. R. Soc. Open Sci. 8 (2021). 
+
 I. Razik, B. K. G. Brown, G. G. Carter, Forced proximity promotes the formation of enduring cooperative relationships in vampire bats. Biol. Lett. 18 (2022). 
+
 C. R. A. Hartman, G. S. Wilkinson, I. Razik, I. M. Hamilton, E. A. Hobson, G. G. Carter, Hierarchically embedded scales of movement shape the social networks of vampire bats. Proc. R. Soc. B Biol. Sci. 291 (2024). 
+
 G. G. Carter, Co-option and the evolution of food sharing in vampire bats. J. Ethol. 127, 837–849 (2021). 
