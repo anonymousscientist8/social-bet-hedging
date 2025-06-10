@@ -56,6 +56,7 @@ to setup
   clear-all ; Clear previous data
   reset-ticks ; Reset ticks to zero
 
+  ; Are the pops extinct?
   set red_pop_extinct False
   set orange_pop_extinct False
   set yellow_pop_extinct False
@@ -379,14 +380,13 @@ to setup
       ifelse who < round(Bats * 1 / strats)
       [
         set color yellow
-        set decision 4; Determines whether a bat's propensity to seek new (0) or familiar individuals (1).
-                      ; A decision value of 2 will be implemented for when bats adjust their strategy in life
+        set decision 4; Focusing 3
       ]
       [
         ifelse who < round(Bats * 2 / strats)
         [
           set color green
-          set decision 5
+          set decision 5; Diversifying 1
         ]
         [
           if strats >= 4
@@ -394,12 +394,12 @@ to setup
             ifelse who < round(Bats * 3 / strats)
             [
               set color magenta
-              set decision 6
+              set decision 6; Focusing 1
             ]
             [ ifelse who < round(Bats * 4 / strats)
               [
                 set color pink
-                set decision 7
+                set decision 7; Diversifying 3
               ]
               [
                 if strats >= 6
@@ -407,13 +407,13 @@ to setup
                   ifelse who < round(Bats * 5 / strats)
                   [
                     set color violet
-                    set decision 0
+                    set decision 0; Diversifying 2
                   ]
                   [
                     ifelse who < round(Bats * 6 / strats)
                     [
                       set color blue
-                      set decision 2
+                      set decision 2; Focusing 2
                     ]
                     [
                       if strats = 8
@@ -421,11 +421,11 @@ to setup
                         ifelse who < round(Bats * 7 / strats)
                         [
                           set color orange
-                          set decision 3
+                          set decision 3; Invest in 2 Equally
                         ]
                         [
                           set color red
-                          set decision 1
+                          set decision 1; Invest in 2 Preferentially
                         ]
                       ]
                     ]
@@ -439,10 +439,9 @@ to setup
     ]
     [
       ifelse who < round(Bats * 1 / strats)
-      [
+      [ ; colors and decision are meant to match the above, however, this code has not been maintained or used for manuscripts
         set color orange
-        set decision 3; Determines whether a bat's propensity to seek new (0) or familiar individuals (1).
-                      ; A decision value of 2 will be implemented for when bats adjust their strategy in life
+        set decision 3
         ifelse who < round(Bats * 1 / (strats * 2))
         [
           set cheat 1
@@ -630,9 +629,9 @@ to feed
   ]
 end
 
-; All non-juvenile bats move, returning to a new or different roost, this section made with the consultation and guidance of ChatGPT
+; All non-juvenile bats move, returning to a new or different roost
 to move
-  ; For all independent bats greater than two years of age
+  ; For all independent bats greater than 300 days of age
   if age >= (300)
   [ ; If older than two years old
     if count turtles with [age > 300] > (Roosts * limit)
@@ -783,7 +782,7 @@ end
 to move-children
   ; For all dependent bats less than two years old
   if (age < 300)
-  [ ; If between 2 and 4 months old
+  [ ; If less than 10 months
     if count turtles with [age > 300] > (Roosts * limit)
     [
       let dead-who who ; Find the id of the bat dying
@@ -801,7 +800,7 @@ to move-children
     ]
     [
       ifelse (age < (120))
-      [ ; If less than two months of age, the bat will not be able to survive
+      [ ; If less than four months of age, the bat will not be able to survive
         let dead-who who ; Find the id of the bat dying
         let index position dead-who relation_id ; Find the position in the list
         set relation_id remove dead-who relation_id ; Remove from relation list
@@ -945,7 +944,7 @@ to move-children
   ]
 end
 
-; When bats are inside, they invest in partners via grooming, this section made with the consultation and guidance of ChatGPT
+; When bats are inside, they invest in partners via grooming
 to groom
   let turtles-with-same-roost other turtles with [roost = [roost] of myself] ; Finds all other bats in the same roost
   if any? turtles-with-same-roost
@@ -983,7 +982,7 @@ to groom
     ]
     ;show sorted-values
     if decision = 0
-    [ ; If diversifyinig strategy
+    [ ; Violet, Diversfiyin 2
       set i 0 ; Create an index
       let bat-list [] ; Initialize a list to store bat already groomed
       let divisors 8 ; The number of bats groomed
@@ -1071,7 +1070,7 @@ to groom
       ]
     ]
     if decision = 1
-    [ ; If focusing strategy
+    [ ; Red, 2 bats, uneven
       set i 0 ; Create an index
       let bat-list [] ; Create an empty bat list
       let boost1 0.75 * groom_give ; Let (100%) of the grooming time go to the most favored bat
@@ -1195,8 +1194,7 @@ to groom
       ]
     ]
     if decision = 2
-    [
-      ; If focusing strategy
+    [ ; Blue, Focusing 2
       set i 0 ; Create an index
       let bat-list [] ; Create an empty bat list
       let divisors 8
@@ -1306,8 +1304,7 @@ to groom
       ]
     ]
     if decision = 3
-    [
-      ; If focusing strategy
+    [ Orange, 2 bats, Even
       set i 0 ; Create an index
       let bat-list [] ; Create an empty bat list
       let boost1 0.5 * groom_give ; Let (100%) of the grooming time go to the most favored bat
@@ -1434,8 +1431,7 @@ to groom
       ]
     ]
     if decision = 4
-    [
-      ; If focusing strategy
+    [ ; Yellow, Focusing 3
       set i 0 ; Create an index
       let bat-list [] ; Create an empty bat list
       let divisors 4
@@ -1545,7 +1541,7 @@ to groom
       ]
     ]
     if decision = 5
-    [ ; If diversifyinig strategy
+    [ Green, Diversifying 1
       set i 0 ; Create an index
       let bat-list [] ; Initialize a list to store bat already groomed
       let divisors 4 ; The number of bats groomed
@@ -1625,8 +1621,7 @@ to groom
       ]
     ]
     if decision = 6
-    [
-      ; If focusing strategy
+    [ ; Magenta, Focusing 1
       set i 0 ; Create an index
       let bat-list [] ; Create an empty bat list
       let divisors 12
@@ -1736,7 +1731,7 @@ to groom
       ]
     ]
     if decision = 7
-    [ ; If diversifyinig strategy
+    [ ; Pink, Diversifying 3
       set i 0 ; Create an index
       let bat-list [] ; Initialize a list to store bat already groomed
       let divisors 12 ; The number of bats groomed
@@ -1894,13 +1889,14 @@ to share
           set eaten fed? ; And mark whether they have eaten or not
         ]
         ifelse (mother = donating and R > 0 and age < 300)
-        [
+        [ ; If mother is donating to young
+          ; Find the difference between real and expceted weight
           let weight-diff (5.5453 * age ^ 0.3012 + 0.00001) - weight
           if (weight-diff > (0.11 * 33))
-          [
+          [ ; See if it is greater than 11% of mother's weight
             set weight-diff 0.11 * 33
           ]
-          set weight weight + weight-diff
+          set weight weight + weight-diff ; Adjust baby's weight and proportional weight
           set weight-percent weight / (5.5453 * age ^ 0.3012 + 0.00001) * 100
           set hours-left (-521 ^ 7 * 2 ^ (8 / 63) * 521 ^ ( 59 / 63) + 5242880 * weight-percent ^ (500 / 63)) / (65536 * weight-percent ^ (500 / 63 )) ; The amount of time until starvation
           let index1 position donating relation_id ; Find the position in the list
@@ -2003,7 +1999,7 @@ to share
                   set weight-percent weight / (5.5453 * age ^ 0.3012 + 0.00001) * 100
                 ]
                 if weight-percent > 100
-                [
+                [ ; Make sure not over 100%
                   set weight-percent 100
                   ifelse age > (10 * 30)
                   [
@@ -2136,7 +2132,7 @@ to birth
         ask turtles with [who = mom-who]
         [ ; Set the relationship of the mom and child to 100
           set relation lput 100 relation
-          set children child-who ; Set the child REPLACES CHILDREN
+          set children child-who ; Set the child
         ]
         ifelse social-inheritance2 = FALSE
         [
