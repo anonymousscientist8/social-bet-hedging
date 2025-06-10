@@ -8,7 +8,7 @@ rm(list=ls())
 
 #############################################################
 # Load dataframe
-strategies <-  read.csv("strategies3.csv")
+strategies <-  read.csv("filename//strategies3.csv")
 
 # Bootstrapping code
 # function to get 95% frequentist confidence interval of mean of vector x using classical bootstrapping
