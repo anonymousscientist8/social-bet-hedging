@@ -8,10 +8,10 @@ rm(list=ls())
 
 #############################################################
 # Load dataframe
-strategies <-  read.csv("filename//strategies3.csv")
+strategies <-  read.csv("C:\\Users\\raven\\Documents\\strategies3.csv")
 
 # Bootstrapping code
-# function to get 95% frequentist confidence interval of mean of vector x using classical bootstrapping
+# function to get 95% maximalist confidence interval of mean of vector x using classical bootstrapping
 # argument 'bca = T' gives you bias-corrected and accelerated bootstrapping
 boot_ci <- function(x, perms=5000, bca=F) {
   library(boot)
@@ -89,7 +89,7 @@ d <-
   mutate(switch= case_when(
     Modifier == -1 ~ "rare",
     Modifier == 0 ~ "empirical",
-    Modifier == 1 ~ "frequent")) %>% 
+    Modifier == 1 ~ "maximal")) %>% 
   pivot_longer(`Diversifying 3`:`Focusing 3`, values_to = "count", names_to = "strategy") %>% 
   select(strategy, count, switch, roost.bias, feed.bias) %>% 
     # create groups for bootstrapping
@@ -110,7 +110,7 @@ roost_labels <- c("low" = "Low co-roosting ingroup bias", "medium" = "Medium co-
 (plot <- 
     means %>% 
     mutate(switch= paste(switch, "roost switching")) %>% 
-  mutate(switch = factor(switch, levels= c("rare roost switching", "empirical roost switching", "frequent roost switching"))) %>% 
+  mutate(switch = factor(switch, levels= c("rare roost switching", "empirical roost switching", "maximal roost switching"))) %>% 
   mutate(roost.bias = factor(roost.bias, levels= c("low", "high"))) %>% 
   mutate(feed.bias = factor(feed.bias, levels= c("low", "medium", "high"))) %>% 
   mutate(strategy= factor(strategy, levels= c("Diversifying 3" ,

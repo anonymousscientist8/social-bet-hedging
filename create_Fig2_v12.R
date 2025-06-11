@@ -9,13 +9,13 @@ rm(list=ls())
 #############################################################
 # Load dataframe
 strategies <-  
-  read.csv("strategies3.csv") %>% 
+  read.csv("C:\\Users\\raven\\Documents\\strategies3.csv") %>% 
   mutate(bins= cut(Modifier, 
                    breaks = c(-Inf, -0.5, 0.5, Inf), 
                    labels = c("-1", "0", "1")))
 
 # Bootstrapping code
-# function to get 95% frequentist confidence interval of mean of vector x using classical bootstrapping
+# function to get 95% maximalist confidence interval of mean of vector x using classical bootstrapping
 # argument 'bca = T' gives you bias-corrected and accelerated bootstrapping
 boot_ci <- function(x, perms=5000, bca=F) {
   library(boot)
@@ -88,8 +88,8 @@ d <-
   mutate(switch= case_when(
     Modifier == -1 ~ "rare",
     Modifier == 0 ~ "empirical",
-    Modifier == 1 ~ "frequent")) %>% 
-  mutate(switch = factor(switch, levels= c("rare", "empirical", "frequent"))) %>% 
+    Modifier == 1 ~ "maximal")) %>% 
+  mutate(switch = factor(switch, levels= c("rare", "empirical", "maximal"))) %>% 
   mutate(roost.bias = factor(roost.bias, levels= c("low", "high"))) %>% 
   mutate(feed.bias = factor(feed.bias, levels= c("low", "medium", "high"))) %>% 
   # create groups for bootstrapping
@@ -102,8 +102,8 @@ means <-
   boot_ci2(d, x= d$scenario, y= d$Average) %>% 
   separate(effect, into = c("switch", "roost.bias", "feed.bias")) %>% 
   # add missing population
-  add_row(switch= "frequent", roost.bias= "low", feed.bias= "high", n.obs= 0) %>%   
-  mutate(switch = factor(switch, levels= c("rare", "empirical", "frequent"))) %>% 
+  add_row(switch= "maximal", roost.bias= "low", feed.bias= "high", n.obs= 0) %>%   
+  mutate(switch = factor(switch, levels= c("rare", "empirical", "maximal"))) %>% 
   mutate(roost.bias = factor(roost.bias, levels= c("low", "high"))) %>% 
   mutate(feed.bias = factor(feed.bias, levels= c("low", "medium", "high"))) %>% 
   mutate(scenario2 = paste(roost.bias, feed.bias, sep= "_")) %>% 
