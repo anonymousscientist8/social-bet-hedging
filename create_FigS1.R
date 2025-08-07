@@ -19,4 +19,5 @@ ggplot(data = d) +
   geom_line(mapping = aes(x = a, y = f), color = "black", size = 1.5) +
   xlab("age (days)") +
   ylab("probability of successfully foraging for food") +
+
   theme_bw()
