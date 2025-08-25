@@ -1,6 +1,5 @@
 # Load packages
 library(tidyverse)
-library(ggrepel)
 library(grid)
 library(gridExtra)
 library(patchwork)
@@ -123,25 +122,23 @@ means$scenario2
 (plot <- 
   means %>% 
     mutate(survival = round(n.obs/660*100)) %>% 
-  ggplot(aes(x=switches, y=mean, group= scenario2))+
+  ggplot(aes(x=switches, y=mean, group = scenario2))+
      facet_grid(rows= vars(feed.bias), cols= vars(roost.bias),
               labeller = labeller(feed.bias = feed_labels, roost.bias = roost_labels)) +
     geom_jitter(data= d, aes(x=switches, y=Average), height= 0, width=0.05, alpha=0.3, color= "darkgrey")+
     geom_line(color= "darkblue")+
-    geom_point(size=2, color= "darkblue")+
+    geom_point(size=2, color= "darkblue", aes(shape = switch))+
     geom_errorbar(aes(ymin= low, ymax= high, width=0.1), color= "darkblue")+
-    geom_text_repel(
-      aes(y = 3, label = paste0(survival, "%")),
+    geom_text(
+      aes(y = 3, label = paste0(survival)),
       size = 3,
-      color = "green4",
-      box.padding = 0.1,
-      max.overlaps = Inf,
-      direction = "x"
+      color = "green4"
     )+
     ylab("average number of daily grooming partners")+
-    scale_x_log10(limits = c(0.001, 2)) +
-    xlab("roost switching rate")+
-    theme_bw())
+    scale_x_log10(limits = c(0.0025, 2)) +
+    xlab("roost switching rate") +
+    theme_bw()) +
+    theme(legend.position = "none")
     
 # save plot
 ggsave(

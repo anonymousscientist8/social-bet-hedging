@@ -58,4 +58,5 @@ ggplot(data = d, mapping = aes(x = partners, y = value, fill = strategy)) +
     name = "partner rank",
     limits = as.character(1:12)
   ) +
-  scale_fill_manual(values = strategy_colors)
+  scale_fill_manual(values = strategy_colors) +
+  scale_x_continuous(breaks = seq(1, 12, by = 2))
