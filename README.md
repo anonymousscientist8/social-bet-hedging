@@ -19,7 +19,7 @@ All necessary R packages and NetLogo extensions are listed at the top of each R 
 
 "strategies3.csv" is uploaded to the second part of "strategies.R." This code filters the code and plots the distribution of grooming strategies for each of the 18 scenarios. These plots are not used in the paper. "fixation_check.R" uses "strategies3.csv" to determine what percentage of simulations only had one strategy remaining after 200 years.
 
-"create_Fig1_v14.R" creates a figure using "strategies3.csv" showing the number of bats using each of the 6 allogrooming strategies across all 18 scenarios. Similarly, "create_Fig2_v13.R" usese "strategies3.csv" creates a figure showing how the average number of daily potential bats groomed changes as grooming rate ("modifier") changes across all 18 scenarios.
+"create_Fig1.R" shows the typical investment distribution for simulated vampire bats when there are 12 available other bats to groom. "create_Fig2.R" uses "strategies3.csv" to create a graph showing the number of bats using each of the 6 allogrooming strategies across all 18 scenarios. Similarly, "create_Fig3.R" uses "strategies3.csv" to create a figure showing how the average number of daily potential bats groomed changes as grooming rate ("modifier") changes across all 18 scenarios. "create_FigS1.R" models the foraging success rate of virtual vampire bats, "create_FigS2.R" models the simulated bats' growth curve, and "create_FigS3.R" shows the relationship between weight and time until starvation for the virtual bats.
 
 # References
 
