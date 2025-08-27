@@ -1,5 +1,6 @@
 # Load packages
 library(tidyverse)
+library(ggh4x)
 library(grid)
 library(gridExtra)
 library(patchwork)
@@ -9,7 +10,7 @@ rm(list=ls())
 #############################################################
 # Load dataframe
 strategies <-  
-  read.csv("C:\\Users\\Raven\\social_bet_hedging\\strategies3.csv") %>% 
+  read.csv("C:\\Users\\Raven\\social_bet_hedging\\strategies3_old.csv") %>% 
   mutate(bins= cut(Modifier, 
                    breaks = c(-Inf, -0.5, 0.5, Inf), 
                    labels = c("-1", "0", "1")))
@@ -123,8 +124,8 @@ means$scenario2
   means %>% 
     mutate(survival = round(n.obs/660*100)) %>% 
   ggplot(aes(x=switches, y=mean, group = scenario2))+
-     facet_grid(rows= vars(feed.bias), cols= vars(roost.bias),
-              labeller = labeller(feed.bias = feed_labels, roost.bias = roost_labels)) +
+     facet_wrap2(~ feed.bias + roost.bias,
+              labeller = labeller(feed.bias = feed_labels, roost.bias = roost_labels), scales = "free_x", ncol = 2, strip = strip_split(c("right", "top"))) +
     geom_jitter(data= d, aes(x=switches, y=Average), height= 0, width=0.05, alpha=0.3, color= "darkgrey")+
     geom_line(color= "darkblue")+
     geom_point(size=2, color= "darkblue", aes(shape = switch))+
@@ -135,7 +136,7 @@ means$scenario2
       color = "green4"
     )+
     ylab("average number of daily grooming partners")+
-    scale_x_log10(limits = c(0.0025, 2)) +
+    scale_x_log10() +
     xlab("roost switching rate") +
     theme_bw()) +
     theme(legend.position = "none")
