@@ -31,7 +31,7 @@ R. F. Crespo, R. J. Burns, S. B. Linhart, Load-lifting capacity of the vampire b
 
 U. Schmidt, U. Manske, Die Jugendentwicklung der Vampirfledermäuse (Desmodus rotundus). Z. Säugetierkd. 38, 14–33 (1972). 
 
-U. Smidt, Vampirfledermäuse : Familie Desmodontidae (Chiroptera). (Die neue Brehm-Bücherei, 1978). 
+U. Schmidt, Vampirfledermäuse : Familie Desmodontidae (Chiroptera). (Die neue Brehm-Bücherei, 1978). 
 
 G. S. Wilkinson, Reciprocal food sharing in the vampire bat. Nature. 308, 181–184 (1984). 
 
