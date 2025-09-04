@@ -13,9 +13,9 @@ strategies <-  read.csv("C:\\Users\\Raven\\social_bet_hedging\\strategies3.csv")
 # tidy data
 d <- 
   strategies %>% 
-  filter(Total >0) %>% 
-  filter(Foraging == 0.93) %>%
+  filter(Total >0) %>%
   filter(Predation > 0) %>%
+  filter(Foraging == 0.93) %>%
   rename("Diversifying 3" = Pink,
          "Diversifying 2" = Violet,
          "Diversifying 1" = Green,

@@ -20,6 +20,8 @@ strategies <-
 d <- 
   strategies %>% 
   filter(Total != 0) %>% 
+  filter(Foraging == 0.93) %>%
+  filter(Predation > 0) %>%
   mutate(roost.bias = case_when(
     Threshold == 0 ~ "low",
     Threshold == 1200 ~ "high")) %>% 
@@ -122,7 +124,7 @@ means$scenario2
 # plot means and 95% CIs
 (plot <- 
   means %>% 
-    mutate(survival = round(n.obs/660*100)) %>% 
+    mutate(survival = round(n.obs/1000*100)) %>% 
   ggplot(aes(x=switches, y=mean, group = scenario2))+
      facet_wrap2(~ feed.bias + roost.bias,
               labeller = labeller(feed.bias = feed_labels, roost.bias = roost_labels), scales = "free_x", ncol = 2, strip = strip_split(c("right", "top"))) +
@@ -150,4 +152,3 @@ ggsave(
   height = 8,
   units = c("in", "cm", "mm", "px"),
   dpi = 300)
-
