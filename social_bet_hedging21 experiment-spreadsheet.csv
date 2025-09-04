@@ -1,0 +1,28 @@
+"BehaviorSpace results (NetLogo 6.4.0)","Spreadsheet version 2.0"
+"social_bet_hedging21.nlogo"
+"experiment"
+"08/19/2025 17:55:31:771 -0500"
+"min-pxcor","max-pxcor","min-pycor","max-pycor"
+"-4","3","-2","3"
+"[run number]"
+"roost-switch?",
+"social-pref?",
+"social-inheritance",
+"social-inheritance2",
+"cheating",
+"p_die",
+"limit",
+"foraging",
+"decay",
+"modifier",
+"discriminatory",
+"threshold",
+"share_boost",
+"share_decline",
+"groom_give",
+"donations",
+"amount",
+"strats",
+"[total steps]",
+
+"[final value]"
