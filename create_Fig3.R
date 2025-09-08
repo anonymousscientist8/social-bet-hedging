@@ -10,7 +10,7 @@ rm(list=ls())
 #############################################################
 # Load dataframe
 strategies <-  
-  read.csv("C:\\Users\\Raven\\social_bet_hedging\\strategies3.csv") %>% 
+  read.csv("filename\\strategies3.csv") %>% 
   mutate(bins= cut(Modifier, 
                    breaks = c(-Inf, -0.5, 0.5, Inf), 
                    labels = c("-1", "0", "1")))
@@ -152,3 +152,4 @@ ggsave(
   height = 8,
   units = c("in", "cm", "mm", "px"),
   dpi = 300)
+
