@@ -25,6 +25,10 @@ globals
   magenta_pop_extinct
   pink_pop_extinct
   pop-bust
+  roost-switching-rate
+  mean-roost-switching-rate
+  mean-persistence
+  mean-mean-persistence
 ]
 
 turtles-own
@@ -43,6 +47,9 @@ turtles-own
   last-switch ; Days since last switch
   donate_give ; Number of portions of food that can be given
   cheat ; Does this bat only save enough to give to their youngest or not?
+  roost-switch-record ; record for keeping track of the number of roost switches
+  prev-roostmates ; agentset (or list) of bats from previous tick
+  persistence ; per-tick persistence score
 ]
 
 patches-own
@@ -66,8 +73,13 @@ to setup
   set magenta_pop_extinct False
   set pink_pop_extinct False
 
+  ; No roost switches yet
+  set roost-switching-rate []
+  set mean-persistence []
+  set mean-roost-switching-rate -1 ; Signifies whether enough time has passed to record roost switching rate
+
   ; Set number of days
-  set Days 365 * 200
+  set Days 73000
 
   ; Set the number of roosts (do NOT change unless changing the code below)
   set Roosts 12
@@ -353,6 +365,9 @@ to setup
   ; Create bats
   create-turtles Bats
   [
+    set prev-roostmates []
+    set persistence 0
+    set roost-switch-record 0 ; No roost switches yet
     set relation_id lput who relation_id ; Add bat IDs to the list
     set relation_id sort relation_id ; Make sure in ascending order
     setxy random-pxcor random-pycor ; Random starting patch
@@ -369,7 +384,7 @@ to setup
     [ ; An approximate growth curve for juvenile bats
       set weight (5.5453 * age ^ 0.3012 + 0.00001)
     ]
-    set hours-left (-521 ^ 7 * 2 ^ (8 / 63) * 521 ^ ( 59 / 63) + 5242880 * weight-percent ^ (500 / 63)) / (65536 * weight-percent ^ (500 / 63 )) ; The amount of time until starvation assuming everyone just fed
+     set hours-left (-521 ^ 7 * 2 ^ (8 / 63) * 521 ^ ( 59 / 63) + 5242880 * weight-percent ^ (500 / 63)) / (65536 * weight-percent ^ (500 / 63 )) ; The amount of time until starvation assuming everyone just fed
     set last-switch 0 ; Days since last roost switch
                       ; Vector of roost switching probabilities
     set roost-switch matrix:from-row-list [[0.33868332	0.420528596	0.506737929	0.59242393	0.672852887	0.744388203	0.804994817	0.85422101	0.89281555	0.92222053	0.944125339	0.960164111	0.971757069	0.980057298]]
@@ -379,8 +394,8 @@ to setup
     [
       ifelse who < round(Bats * 1 / strats)
       [
-        set color yellow
-        set decision 4; Focusing 3
+        set color pink
+        set decision 7; Diversifying 3
       ]
       [
         ifelse who < round(Bats * 2 / strats)
@@ -389,43 +404,47 @@ to setup
           set decision 5; Diversifying 1
         ]
         [
-          if strats >= 4
+          if strats >= 3
           [
             ifelse who < round(Bats * 3 / strats)
             [
-              set color magenta
-              set decision 6; Focusing 1
+              set color violet
+              set decision 0; Diversifying 2
             ]
-            [ ifelse who < round(Bats * 4 / strats)
+            [
+              if strats >= 4
               [
-                set color pink
-                set decision 7; Diversifying 3
-              ]
-              [
-                if strats >= 6
+                ifelse who < round(Bats * 4 / strats)
                 [
-                  ifelse who < round(Bats * 5 / strats)
+                  set color yellow
+                  set decision 4; Focusing 3
+                ]
+                [
+                  if strats >= 6
                   [
-                    set color violet
-                    set decision 0; Diversifying 2
-                  ]
-                  [
-                    ifelse who < round(Bats * 6 / strats)
+                    ifelse who < round(Bats * 5 / strats)
                     [
-                      set color blue
-                      set decision 2; Focusing 2
+                      set color magenta
+                      set decision 6; Focusing 1
                     ]
                     [
-                      if strats = 8
+                      ifelse who < round(Bats * 6 / strats)
                       [
-                        ifelse who < round(Bats * 7 / strats)
+                        set color blue
+                        set decision 2; Focusing 2
+                      ]
+                      [
+                        if strats = 8
                         [
-                          set color orange
-                          set decision 3; Invest in 2 Equally
-                        ]
-                        [
-                          set color red
-                          set decision 1; Invest in 2 Preferentially
+                          ifelse who < round(Bats * 7 / strats)
+                          [
+                            set color orange
+                            set decision 3; Invest in 2 Equally
+                          ]
+                          [
+                            set color red
+                            set decision 1; Invest in 2 Preferentially
+                          ]
                         ]
                       ]
                     ]
@@ -584,7 +603,7 @@ to feed
       [ ; An approximate growth curve for juvenile bats
         set weight (5.5453 * age ^ 0.3012 + 0.00001) * weight-percent / 100
       ]
-      set hours-left (-521 ^ 7 * 2 ^ (8 / 63) * 521 ^ ( 59 / 63) + 5242880 * weight-percent ^ (500 / 63)) / (65536 * weight-percent ^ (500 / 63 )) ; The amount of time until starvation
+       set hours-left (-521 ^ 7 * 2 ^ (8 / 63) * 521 ^ ( 59 / 63) + 5242880 * weight-percent ^ (500 / 63)) / (65536 * weight-percent ^ (500 / 63 )) ; The amount of time until starvation
       set donate_give donations; Reset the amount of food the bat can donate to 5 units
     ]
     [ ; Otherwise, if the bat did not find food
@@ -625,6 +644,10 @@ to feed
     [ ; Remove relationships with dead bat
       set relation remove-item index relation
     ]
+    if ticks > (365 * 14) and age > 0
+    [
+      set roost-switching-rate lput (roost-switch-record / age) roost-switching-rate
+    ]
     die ; And kill the bat
   ]
 end
@@ -643,6 +666,10 @@ to move
       [ ; Remove relationships with dead bat
         set relation remove-item index relation
       ]
+      if ticks > (365 * 14) and (age > 0)
+      [
+        set roost-switching-rate lput (roost-switch-record / age) roost-switching-rate
+      ]
       die
     ]
     let p random-float 1 ; Probability of roost-switch
@@ -651,7 +678,8 @@ to move
       set last-switch length roost-switch - 1
     ]
     let roost-switch-prob item last-switch roost-switch ; The probability of a roost switch
-    set roost-switch-prob roost-switch-prob + modifier ; Add the modifier
+    ;set roost-switch-prob roost-switch-prob + modifier ; Add the modifier
+    set roost-switch-prob modifier
     if roost-switch-prob > 1
     [ ; Make sure this value never goes above 1
       set roost-switch-prob 1
@@ -669,6 +697,8 @@ to move
       set last-switch last-switch + 1 ; And add 1 day to days since last switch
     ]
     [ ; If there is a roost switch
+      ;show "adult"
+      set roost-switch-record roost-switch-record + 1
       set last-switch 0 ; reset the days since last roost switch
       ifelse social-pref? = False
       [ ; If there is no social preference
@@ -792,11 +822,24 @@ to move-children
       [ ; Remove relationships with dead bat
         set relation remove-item index relation
       ]
+      if ticks > (365 * 14) and age > 0
+      [
+        if age > 0
+        [
+          set roost-switching-rate lput (roost-switch-record / age) roost-switching-rate
+        ]
+      ]
       die
     ]
     ifelse (any? turtles with [who = [mother] of myself])
     [ ; and mother is still alive, the bat moves to where its mother is
+      let roost1 roost
       move-to one-of turtles with ([who = [mother] of myself])
+      let roost2 roost
+      if roost1 != roost2
+      [
+        set roost-switch-record roost-switch-record + 1
+      ]
     ]
     [
       ifelse (age < (120))
@@ -807,6 +850,10 @@ to move-children
         ask turtles with [who != dead-who]
         [ ; Remove relationships with dead bat
           set relation remove-item index relation
+        ]
+        if ticks > (365 * 14) and (age > 0)
+        [
+          set roost-switching-rate lput (roost-switch-record / age) roost-switching-rate
         ]
         die
       ]
@@ -834,6 +881,8 @@ to move-children
           set last-switch last-switch + 1 ; And add 1 day to days since last switch
         ]
         [ ; If there is a roost switch
+          ;show "child"
+          set roost-switch-record roost-switch-record + 1
           set last-switch 0 ; reset the days since last roost switch
           ifelse social-pref? = False
           [ ; If there is no social preference
@@ -1898,14 +1947,14 @@ to share
           ]
           set weight weight + weight-diff ; Adjust baby's weight and proportional weight
           set weight-percent weight / (5.5453 * age ^ 0.3012 + 0.00001) * 100
-          set hours-left (-521 ^ 7 * 2 ^ (8 / 63) * 521 ^ ( 59 / 63) + 5242880 * weight-percent ^ (500 / 63)) / (65536 * weight-percent ^ (500 / 63 )) ; The amount of time until starvation
+           set hours-left (-521 ^ 7 * 2 ^ (8 / 63) * 521 ^ ( 59 / 63) + 5242880 * weight-percent ^ (500 / 63)) / (65536 * weight-percent ^ (500 / 63 )) ; The amount of time until starvation
           let index1 position donating relation_id ; Find the position in the list
           set relation replace-item index1 relation 100 ; Improve relationship
           ask turtles with [who = donating]
           [
             set weight weight - weight-diff ; Update weight and time left
             set weight-percent weight / 33 * 100
-            set hours-left (-521 ^ 7 * 2 ^ (8 / 63) * 521 ^ ( 59 / 63) + 5242880 * weight-percent ^ (500 / 63)) / (65536 * weight-percent ^ (500 / 63 )) ; The amount of time until starvation
+             set hours-left (-521 ^ 7 * 2 ^ (8 / 63) * 521 ^ ( 59 / 63) + 5242880 * weight-percent ^ (500 / 63)) / (65536 * weight-percent ^ (500 / 63 )) ; The amount of time until starvation
             ;show hours-left / 24
           ]
           if weight-percent >= 100
@@ -1943,7 +1992,7 @@ to share
                 set weight weight-percent * (5.5453 * age ^ 0.3012 + 0.00001) / 100
               ]
             ]
-            set hours-left (-521 ^ 7 * 2 ^ (8 / 63) * 521 ^ ( 59 / 63) + 5242880 * weight-percent ^ (500 / 63)) / (65536 * weight-percent ^ (500 / 63 )) ; The amount of time until starvation
+             set hours-left (-521 ^ 7 * 2 ^ (8 / 63) * 521 ^ ( 59 / 63) + 5242880 * weight-percent ^ (500 / 63)) / (65536 * weight-percent ^ (500 / 63 )) ; The amount of time until starvation
             let done_feeding False ; Initialize done_feeding, which determines whether they are fed
                                    ; Update the relaionship to increase because of the accepted donation
             let index1 position donating relation_id ; Find the position in the list
@@ -1971,7 +2020,7 @@ to share
               [ ; An approximate growth curve for juvenile bats
                 set weight-percent weight / (5.5453 * age ^ 0.3012 + 0.00001) * 100
               ]
-              set hours-left (-521 ^ 7 * 2 ^ (8 / 63) * 521 ^ ( 59 / 63) + 5242880 * weight-percent ^ (500 / 63)) / (65536 * weight-percent ^ (500 / 63 )) ; The amount of time until starvation
+               set hours-left (-521 ^ 7 * 2 ^ (8 / 63) * 521 ^ ( 59 / 63) + 5242880 * weight-percent ^ (500 / 63)) / (65536 * weight-percent ^ (500 / 63 )) ; The amount of time until starvation
               set R R - 1 ; Then update the local reserves variable
             ]
             if weight-percent >= 100
@@ -2010,7 +2059,7 @@ to share
                   ]
                 ]
                 ;show weight-percent
-                set hours-left (-521 ^ 7 * 2 ^ (8 / 63) * 521 ^ ( 59 / 63) + 5242880 * weight-percent ^ (500 / 63)) / (65536 * weight-percent ^ (500 / 63 )) ; The amount of time until starvation
+                 set hours-left (-521 ^ 7 * 2 ^ (8 / 63) * 521 ^ ( 59 / 63) + 5242880 * weight-percent ^ (500 / 63)) / (65536 * weight-percent ^ (500 / 63 )) ; The amount of time until starvation
                 set relation-score item index1 relation ; Get the relationship score
                 set relation replace-item index1 relation (relation-score + share_boost) ; Improve relationship
                 set relations item index1 relation ; And pull out the relationship
@@ -2037,7 +2086,7 @@ to share
                     set weight-percent weight / (5.5453 * age ^ 0.3012 + 0.00001) * 100
                   ]
                   ;show weight-percent
-                  set hours-left (-521 ^ 7 * 2 ^ (8 / 63) * 521 ^ ( 59 / 63) + 5242880 * weight-percent ^ (500 / 63)) / (65536 * weight-percent ^ (500 / 63 )) ; The amount of time until starvation
+                   set hours-left (-521 ^ 7 * 2 ^ (8 / 63) * 521 ^ ( 59 / 63) + 5242880 * weight-percent ^ (500 / 63)) / (65536 * weight-percent ^ (500 / 63 )) ; The amount of time until starvation
                   set R R - 1
                 ]
                 if weight-percent >= 100
@@ -2087,6 +2136,10 @@ to starve
     [ ; Remove relationships with dead bat
       set relation remove-item index relation
     ]
+    if ticks > (365 * 14) and age > 0
+    [
+      set roost-switching-rate lput (roost-switch-record / age) roost-switching-rate
+    ]
     die ; And kill the bat
   ]
   if age > (16 * 365)
@@ -2097,6 +2150,10 @@ to starve
     ask turtles with [who != dead-who]
     [ ; Remove relationships with dead bat
       set relation remove-item index relation
+    ]
+    if ticks > (365 * 14) and (age > 0)
+    [
+      set roost-switching-rate lput (roost-switch-record / age) roost-switching-rate
     ]
     die ; And kill the bat
   ]
@@ -2110,11 +2167,12 @@ to birth
     [ ; And seven months have passed since last birt (or 28 months old)
       let mom-who who ; Set the mother
       hatch 1 [ ; Make one new bat
+        set roost-switch-record 0
         set age 0 ; Set age to 0
         set last-switch 0 ; Set days since last switch to zero
         set weight-percent 100
         set weight (5.5453 * age ^ 0.3012 + 0.00001)
-        set hours-left (-521 ^ 7 * 2 ^ (8 / 63) * 521 ^ ( 59 / 63) + 5242880 * weight-percent ^ (500 / 63)) / (65536 * weight-percent ^ (500 / 63 )) ; The amount of time until starvation
+         set hours-left (-521 ^ 7 * 2 ^ (8 / 63) * 521 ^ ( 59 / 63) + 5242880 * weight-percent ^ (500 / 63)) / (65536 * weight-percent ^ (500 / 63 )) ; The amount of time until starvation
         set mother mom-who ; Set mother
         set decision decision ; Make sure the decision is the same as the mothers
         set fed? TRUE ; Mark that it has been fed
@@ -2156,6 +2214,21 @@ end
 ; Used to run the simulation
 to go
   set Bats count turtles
+  ask turtles [
+    let current-roostmates sort [who] of other turtles with [roost = [roost] of myself]
+
+    if not empty? prev-roostmates [
+      let overlap length filter [w -> member? w prev-roostmates] current-roostmates
+      let prev-count length prev-roostmates
+      if prev-count > 0 [
+        set persistence overlap / prev-count
+      ]
+    ]
+
+    ;; update memory for next tick
+    set prev-roostmates sort [who] of other turtles with [roost = [roost] of myself]
+  ]
+  set mean-persistence lput mean [persistence] of turtles mean-persistence
   ask turtles
   [ ; Turtles find food
     set relation map [x -> max (list (x - decay) 0)] relation ; Decay
@@ -2294,6 +2367,10 @@ to go
   if count turtles = 0
   [ ; Stop program if everyone is dead
     show "extinction"
+    set mean-roost-switching-rate mean roost-switching-rate
+    show mean-roost-switching-rate
+    set mean-mean-persistence mean mean-persistence
+    show mean-mean-persistence
     stop
   ]
   let reference-turtle one-of turtles
@@ -2327,6 +2404,10 @@ to go
     show count turtles with [color = orange]
     show "red count:"
     show count turtles with [color = red]
+    set mean-roost-switching-rate mean roost-switching-rate
+    show mean-roost-switching-rate
+    set mean-mean-persistence mean mean-persistence
+    show mean-mean-persistence
     stop
   ]
 end
@@ -2475,7 +2556,7 @@ foraging
 0
 1
 0.93
-0.001
+0.01
 1
 NIL
 HORIZONTAL
@@ -2502,10 +2583,10 @@ SLIDER
 390
 modifier
 modifier
--1
+0
 1
--0.97
 0.01
+0.0001
 1
 NIL
 HORIZONTAL
@@ -2549,7 +2630,7 @@ discriminatory
 discriminatory
 -25
 100
-70.0
+30.0
 1
 1
 NIL
@@ -2587,7 +2668,7 @@ strats
 0
 8
 6.0
-2
+1
 1
 NIL
 HORIZONTAL
@@ -2613,7 +2694,7 @@ share_boost
 0
 1
 0.5
-0.01
+0.05
 1
 NIL
 HORIZONTAL
@@ -3025,9 +3106,10 @@ NetLogo 6.4.0
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="experiment" repetitions="1" runMetricsEveryStep="true">
+  <experiment name="experiment" repetitions="8" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
+    <metric>modifier</metric>
     <metric>count turtles with [color = pink]</metric>
     <metric>count turtles with [color = magenta]</metric>
     <metric>count turtles with [color = violet]</metric>
@@ -3035,6 +3117,8 @@ NetLogo 6.4.0
     <metric>count turtles with [color = green]</metric>
     <metric>count turtles with [color = yellow]</metric>
     <metric>pop-bust</metric>
+    <metric>mean-roost-switching-rate</metric>
+    <metric>mean-mean-persistence</metric>
     <enumeratedValueSet variable="roost-switch?">
       <value value="true"/>
     </enumeratedValueSet>
@@ -3063,10 +3147,60 @@ NetLogo 6.4.0
       <value value="0"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="modifier">
-      <value value="-1"/>
+      <value value="0"/>
+      <value value="1.0E-4"/>
+      <value value="2.0E-4"/>
+      <value value="3.0E-4"/>
+      <value value="4.0E-4"/>
+      <value value="5.0E-4"/>
+      <value value="6.0E-4"/>
+      <value value="7.0E-4"/>
+      <value value="8.0E-4"/>
+      <value value="9.0E-4"/>
+      <value value="0.001"/>
+      <value value="0.0011"/>
+      <value value="0.0012"/>
+      <value value="0.0013"/>
+      <value value="0.0014"/>
+      <value value="0.0015"/>
+      <value value="0.0016"/>
+      <value value="0.0017"/>
+      <value value="0.0018"/>
+      <value value="0.0019"/>
+      <value value="0.002"/>
+      <value value="0.0021"/>
+      <value value="0.0022"/>
+      <value value="0.0023"/>
+      <value value="0.0024"/>
+      <value value="0.0025"/>
+      <value value="0.0026"/>
+      <value value="0.0027"/>
+      <value value="0.0028"/>
+      <value value="0.0029"/>
+      <value value="0.003"/>
+      <value value="0.0031"/>
+      <value value="0.0032"/>
+      <value value="0.0033"/>
+      <value value="0.0034"/>
+      <value value="0.0035"/>
+      <value value="0.0036"/>
+      <value value="0.0037"/>
+      <value value="0.0038"/>
+      <value value="0.0039"/>
+      <value value="0.004"/>
+      <value value="0.0041"/>
+      <value value="0.0042"/>
+      <value value="0.0043"/>
+      <value value="0.0044"/>
+      <value value="0.0045"/>
+      <value value="0.0046"/>
+      <value value="0.0047"/>
+      <value value="0.0048"/>
+      <value value="0.0049"/>
+      <value value="0.005"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="discriminatory">
-      <value value="70"/>
+      <value value="30"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="threshold">
       <value value="0"/>
