@@ -51,6 +51,78 @@ patches-own
   bat-count
 ]
 
+; Get relationship matrix
+to-report relationship-matrix
+  report map [ b -> [relation] of turtle b ] sort [who] of turtles
+end
+
+to-report mean-reciprocity-difference
+
+  let total-difference 0
+  let pair-count 0
+
+  ask turtles [
+
+    let me who
+
+    ;; Only compare each pair once (A-B but not B-A)
+    let i 0
+    while [i < length relation_id] [
+
+      let id item i relation_id
+      let rel item i relation
+
+      if id > me [
+
+        let reverse-rel 0
+
+        ask turtle id [
+          let idx position me relation_id
+          set reverse-rel item idx relation
+        ]
+
+        set total-difference total-difference + abs (rel - reverse-rel)
+        set pair-count pair-count + 1
+
+      ]
+
+      set i i + 1
+    ]
+  ]
+
+  if pair-count = 0 [ report 0 ]
+
+  report total-difference / pair-count
+
+end
+
+to-report mean-random-difference [n-samples]
+
+  let total-difference 0
+  let sample-count 0
+
+  repeat n-samples [
+
+    ;; Pick first directed relationship
+    let bat1 one-of turtles
+    let idx1 random length [relation] of bat1
+    let rel1 item idx1 [relation] of bat1
+
+    ;; Pick a completely independent directed relationship
+    let bat2 one-of turtles
+    let idx2 random length [relation] of bat2
+    let rel2 item idx2 [relation] of bat2
+
+    set total-difference total-difference + abs (rel1 - rel2)
+    set sample-count sample-count + 1
+  ]
+
+  if sample-count = 0 [ report 0 ]
+
+  report total-difference / sample-count
+
+end
+
 ; Setup environment and intialize variables
 to setup
   clear-all ; Clear previous data
@@ -67,7 +139,8 @@ to setup
   set pink_pop_extinct False
 
   ; Set number of days
-  set Days 365 * 200
+  ;set Days 365 * 200
+  set Days 10000
 
   ; Set the number of roosts (do NOT change unless changing the code below)
   set Roosts 12
@@ -963,6 +1036,7 @@ to groom
       set relationship-vector replace-item i relationship-vector bat-relation ; And update the local relationship list
       set i i + 1
     ]
+
     let combined-list (sentence (list flattened-who-list) (list relationship-vector)) ; Map the two lists together
     ; Extracting the first sublist from combinedList
     let whoList item 0 combined-list
@@ -981,6 +1055,7 @@ to groom
       ]
     ]
     ;show sorted-values
+    ;show sorted-who-list
     if decision = 0
     [ ; Violet, Diversfiyin 2
       set i 0 ; Create an index
@@ -1070,94 +1145,66 @@ to groom
       ]
     ]
     if decision = 1
-    [ ; Red, 2 bats, uneven
+    [ ; Red, Focus more with age
       set i 0 ; Create an index
-      let bat-list [] ; Create an empty bat list
-      let boost1 0.75 * groom_give ; Let (100%) of the grooming time go to the most favored bat
-      let boost2 groom_give - boost1 ; And the remainder goes to the other
-      while [i < 2]
+      let bat-list [] ; Initialize a list to store bat already groomed
+      let divisors 0
+      ifelse age < 300
       [
-        ifelse (2 < (length flattened-who-list))
+        set divisors 8 ; The number of bats groomed
+      ]
+      [
+        set divisors 4
+      ]
+
+      let boost groom_give / divisors ; The boost from grooming each bat
+      while [i < divisors]
+      [ ; While there are still bats to groom
+        ifelse (divisors < (length flattened-who-list))
         [ ; If there are more bats present than there are bats to groom
-          ; Find the bat that has the highest relationship not already groomed
+          ; Groom the bat that is the most familiar who hasn't already been groomed that day
           set my-bat item ((length sorted-who-list) - 1 - i) sorted-who-list ; Mark the new bat
-          set bat-list lput my-bat bat-list ; And update the list
-          let grooming who ; Then mark who is grooming
+          ;show sorted-who-list
+          ;show my-bat
+          set bat-list lput my-bat bat-list ; Then mark that this bat was groomed
+          let grooming who ; Then make a local variable to see who is doing the grooming
+          let index0 0
+          let relationship 0
           ask turtles with [who = my-bat]
-          [ ; Ask the groomed bat
-            ifelse i = 0
-            [ ; If this is the first bat, give them the higher boost
-              let index0 0
-              let relationship 0
-              ask turtles with [who = my-bat]
-              [ ; Ask the bat being groomed to increase their relationship
-                set index0 position grooming relation_id ; Find the position in the list
-                set relationship item index0 relation ; State their relationship
-                set relation replace-item index0 relation (relationship + boost1) ; Update relation
-                if ((item index0 relation) > 100)
-                [ ; Ensure the relaitonship doesn't exceed 100
-                  set relation replace-item index0 relation 100
-                ]
-              ]
+          [ ; Ask the bat being groomed to increase their relationship
+            set index0 position grooming relation_id ; Find the position in the list
+            set relationship item index0 relation ; State their relationship
+            ;show relationship
+            set relation replace-item index0 relation (relationship + boost) ; Update relation
+            if ((item index0 relation) > 100)
+            [ ; Ensure the relaitonship doesn't exceed 100
+              set relation replace-item index0 relation 100
             ]
-            [ ; If this is the second bat, give them the lower boost
-              let index0 0
-              let relationship 0
-              ask turtles with [who = my-bat]
-              [ ; Ask the bat being groomed to increase their relationship
-                set index0 position grooming relation_id ; Find the position in the list
-                set relationship item index0 relation ; State their relationship
-                set relation replace-item index0 relation (relationship + boost2) ; Update relation
-                if ((item index0 relation) > 100)
-                [ ; Ensure the relaitonship doesn't exceed 100
-                  set relation replace-item index0 relation 100
-                ]
-              ]
-            ]
+            ;show item index0 relation
           ]
-          set i i + 1 ; Update the index
+          set i i + 1 ; Then update the index
         ]
         [ ; If there are less bats present than there are divisors
-          let j 0 ; Make a new index
+          let j 0 ; Create a second index
           ifelse (i = 0)
           [ ; If we are just starting
             while [j < (length flattened-who-list)]
             [ ; Proceed normally until you have to loop
-              ; Find the bat that has the highest relationship not already groomed
+              ; Groom the bat that is the most familiar who hasn't already been groomed that day
               set my-bat item ((length sorted-who-list) - 1 - i) sorted-who-list ; Mark the new bat
-              set bat-list lput my-bat bat-list ; And update the list
-              let grooming who ; Then mark who is grooming
+              ;show my-bat
+              set bat-list lput my-bat bat-list ; Then mark that this bat was groomed
+              let grooming who ; Then make a local variable to see who is doing the grooming
+              let index0 0
+              let relationship 0
               ask turtles with [who = my-bat]
-              [ ; Ask the groomed bat
-                ifelse i = 0
-                [ ; If this is the first bat, give them the higher boost
-                  let index0 0
-                  let relationship 0
-                  ask turtles with [who = my-bat]
-                  [ ; Ask the bat being groomed to increase their relationship
-                    set index0 position grooming relation_id ; Find the position in the list
-                    set relationship item index0 relation ; State their relationship
-                    set relation replace-item index0 relation (relationship + boost1) ; Update relation
-                    if ((item index0 relation) > 100)
-                    [ ; Ensure the relaitonship doesn't exceed 100
-                      set relation replace-item index0 relation 100
-                    ]
-                  ]
-                ]
-                [ ; If this is the second bat
-                  ; Give them the lower boost
-                  let index0 0
-                  let relationship 0
-                  ask turtles with [who = my-bat]
-                  [ ; Ask the bat being groomed to increase their relationship
-                    set index0 position grooming relation_id ; Find the position in the list
-                    set relationship item index0 relation ; State their relationship
-                    set relation replace-item index0 relation (relationship + boost2) ; Update relation
-                    if ((item index0 relation) > 100)
-                    [ ; Ensure the relaitonship doesn't exceed 100
-                      set relation replace-item index0 relation 100
-                    ]
-                  ]
+              [ ; Ask the bat being groomed to increase their relationship
+                set index0 position grooming relation_id ; Find the position in the list
+                set relationship item index0 relation ; State their relationship
+                set relation replace-item index0 relation (relationship + boost) ; Update relation
+                if ((item index0 relation) > 100)
+                [ ; Ensure the relaitonship doesn't exceed 100
+                  set relation replace-item index0 relation 100
                 ]
               ]
               ; Then update both indices
@@ -1166,28 +1213,28 @@ to groom
             ]
           ]
           [ ; For the remainder, loop through bat-list
-            let index-list n-values (2 - length sorted-who-list) [m -> (m mod (length bat-list))]
+            ; Make a list that loops around back to the top
+            let index-list n-values (divisors - length sorted-who-list) [m -> (m mod (length bat-list))]
+            ;show index-list
+            ;show index-list
             foreach index-list
-            [ ; For each item in the list
-              n -> set my-bat item n bat-list ; Find the relevant
-              let grooming who ; Find who is doing the grooming
+            [ ; And for each rank in that list
+              n -> set my-bat item n bat-list ; Set my-bat to be whatever bat is in the bat-list
+              let grooming who ; And mark who is doing the grooming
+              let index0 0
+              let relationship 0
               ask turtles with [who = my-bat]
-              [ ; And asked the groomed bat
-                ; To set the remainder of the grooming time back to the first bat
-                let index0 0
-                let relationship 0
-                ask turtles with [who = my-bat]
-                [ ; Ask the bat being groomed to increase their relationship
-                  set index0 position grooming relation_id ; Find the position in the list
-                  set relationship item index0 relation ; State their relationship
-                  set relation replace-item index0 relation (relationship + boost2) ; Update relation
-                  if ((item index0 relation) > 100)
-                  [ ; Ensure the relaitonship doesn't exceed 100
-                    set relation replace-item index0 relation 100
-                  ]
+              [ ; Ask the bat being groomed to increase their relationship
+                set index0 position grooming relation_id ; Find the position in the list
+                set relationship item index0 relation ; State their relationship
+                set relation replace-item index0 relation (relationship + boost) ; Update relation
+                if ((item index0 relation) > 100)
+                [ ; Ensure the relaitonship doesn't exceed 100
+                  set relation replace-item index0 relation 100
                 ]
+                ;show item index0 relation
               ]
-              set i i + 1 ; Update the index
+              set i i + 1 ; Then update the first index
             ]
           ]
         ]
@@ -1304,97 +1351,66 @@ to groom
       ]
     ]
     if decision = 3
-    [ ;Orange, 2 bats, Even
+    [ ; Orange, Diversify more with age
       set i 0 ; Create an index
-      let bat-list [] ; Create an empty bat list
-      let boost1 0.5 * groom_give ; Let (100%) of the grooming time go to the most favored bat
-      let boost2 groom_give - boost1 ; And the remainder goes to the other
-      while [i < 2]
+      let bat-list [] ; Initialize a list to store bat already groomed
+      let divisors 0
+      ifelse age < 300
       [
-        ifelse (2 < (length flattened-who-list))
+        set divisors 4 ; The number of bats groomed
+      ]
+      [
+        set divisors 8
+      ]
+
+      let boost groom_give / divisors ; The boost from grooming each bat
+      while [i < divisors]
+      [ ; While there are still bats to groom
+        ifelse (divisors < (length flattened-who-list))
         [ ; If there are more bats present than there are bats to groom
-          ; Find the bat that has the highest relationship not already groomed
+          ; Groom the bat that is the most familiar who hasn't already been groomed that day
           set my-bat item ((length sorted-who-list) - 1 - i) sorted-who-list ; Mark the new bat
-          set bat-list lput my-bat bat-list ; And update the list
-          let grooming who ; Then mark who is grooming
+          ;show sorted-who-list
+          ;show my-bat
+          set bat-list lput my-bat bat-list ; Then mark that this bat was groomed
+          let grooming who ; Then make a local variable to see who is doing the grooming
+          let index0 0
+          let relationship 0
           ask turtles with [who = my-bat]
-          [ ; Ask the groomed bat
-            ifelse i = 0
-            [ ; If this is the first bat
-              ; Give them the higher boost
-              let index0 0
-              let relationship 0
-              ask turtles with [who = my-bat]
-              [ ; Ask the bat being groomed to increase their relationship
-                set index0 position grooming relation_id ; Find the position in the list
-                set relationship item index0 relation ; State their relationship
-                set relation replace-item index0 relation (relationship + boost1) ; Update relation
-                if ((item index0 relation) > 100)
-                [ ; Ensure the relaitonship doesn't exceed 100
-                  set relation replace-item index0 relation 100
-                ]
-              ]
+          [ ; Ask the bat being groomed to increase their relationship
+            set index0 position grooming relation_id ; Find the position in the list
+            set relationship item index0 relation ; State their relationship
+            ;show relationship
+            set relation replace-item index0 relation (relationship + boost) ; Update relation
+            if ((item index0 relation) > 100)
+            [ ; Ensure the relaitonship doesn't exceed 100
+              set relation replace-item index0 relation 100
             ]
-            [ ; If this is the second bat
-              ; Give them the lower boost
-              let index0 0
-              let relationship 0
-              ask turtles with [who = my-bat]
-              [ ; Ask the bat being groomed to increase their relationship
-                set index0 position grooming relation_id ; Find the position in the list
-                set relationship item index0 relation ; State their relationship
-                set relation replace-item index0 relation (relationship + boost2) ; Update relation
-                if ((item index0 relation) > 100)
-                [ ; Ensure the relaitonship doesn't exceed 100
-                  set relation replace-item index0 relation 100
-                ]
-              ]
-            ]
+            ;show item index0 relation
           ]
-          set i i + 1 ; Update the index
+          set i i + 1 ; Then update the index
         ]
         [ ; If there are less bats present than there are divisors
-          let j 0 ; Make a new index
+          let j 0 ; Create a second index
           ifelse (i = 0)
           [ ; If we are just starting
             while [j < (length flattened-who-list)]
             [ ; Proceed normally until you have to loop
-              ; Find the bat that has the highest relationship not already groomed
+              ; Groom the bat that is the most familiar who hasn't already been groomed that day
               set my-bat item ((length sorted-who-list) - 1 - i) sorted-who-list ; Mark the new bat
-              set bat-list lput my-bat bat-list ; And update the list
-              let grooming who ; Then mark who is grooming
+              ;show my-bat
+              set bat-list lput my-bat bat-list ; Then mark that this bat was groomed
+              let grooming who ; Then make a local variable to see who is doing the grooming
+              let index0 0
+              let relationship 0
               ask turtles with [who = my-bat]
-              [ ; Ask the groomed bat
-                ifelse i = 0
-                [ ; If this is the first bat
-                  ; Give them the higher boost
-                  let index0 0
-                  let relationship 0
-                  ask turtles with [who = my-bat]
-                  [ ; Ask the bat being groomed to increase their relationship
-                    set index0 position grooming relation_id ; Find the position in the list
-                    set relationship item index0 relation ; State their relationship
-                    set relation replace-item index0 relation (relationship + boost1) ; Update relation
-                    if ((item index0 relation) > 100)
-                    [ ; Ensure the relaitonship doesn't exceed 100
-                      set relation replace-item index0 relation 100
-                    ]
-                  ]
-                ]
-                [ ; If this is the second bat
-                  ; Give them the lower boost
-                  let index0 0
-                  let relationship 0
-                  ask turtles with [who = my-bat]
-                  [ ; Ask the bat being groomed to increase their relationship
-                    set index0 position grooming relation_id ; Find the position in the list
-                    set relationship item index0 relation ; State their relationship
-                    set relation replace-item index0 relation (relationship + boost2) ; Update relation
-                    if ((item index0 relation) > 100)
-                    [ ; Ensure the relaitonship doesn't exceed 100
-                      set relation replace-item index0 relation 100
-                    ]
-                  ]
+              [ ; Ask the bat being groomed to increase their relationship
+                set index0 position grooming relation_id ; Find the position in the list
+                set relationship item index0 relation ; State their relationship
+                set relation replace-item index0 relation (relationship + boost) ; Update relation
+                if ((item index0 relation) > 100)
+                [ ; Ensure the relaitonship doesn't exceed 100
+                  set relation replace-item index0 relation 100
                 ]
               ]
               ; Then update both indices
@@ -1403,28 +1419,28 @@ to groom
             ]
           ]
           [ ; For the remainder, loop through bat-list
-            let index-list n-values (2 - length sorted-who-list) [m -> (m mod (length bat-list))]
+            ; Make a list that loops around back to the top
+            let index-list n-values (divisors - length sorted-who-list) [m -> (m mod (length bat-list))]
+            ;show index-list
+            ;show index-list
             foreach index-list
-            [ ; For each item in the list
-              n -> set my-bat item n bat-list ; Find the relevant
-              let grooming who ; Find who is doing the grooming
+            [ ; And for each rank in that list
+              n -> set my-bat item n bat-list ; Set my-bat to be whatever bat is in the bat-list
+              let grooming who ; And mark who is doing the grooming
+              let index0 0
+              let relationship 0
               ask turtles with [who = my-bat]
-              [ ; And asked the groomed bat
-                ; To set the remainder of the grooming time back to the first bat
-                let index0 0
-                let relationship 0
-                ask turtles with [who = my-bat]
-                [ ; Ask the bat being groomed to increase their relationship
-                  set index0 position grooming relation_id ; Find the position in the list
-                  set relationship item index0 relation ; State their relationship
-                  set relation replace-item index0 relation (relationship + boost2) ; Update relation
-                  if ((item index0 relation) > 100)
-                  [ ; Ensure the relaitonship doesn't exceed 100
-                    set relation replace-item index0 relation 100
-                  ]
+              [ ; Ask the bat being groomed to increase their relationship
+                set index0 position grooming relation_id ; Find the position in the list
+                set relationship item index0 relation ; State their relationship
+                set relation replace-item index0 relation (relationship + boost) ; Update relation
+                if ((item index0 relation) > 100)
+                [ ; Ensure the relaitonship doesn't exceed 100
+                  set relation replace-item index0 relation 100
                 ]
+                ;show item index0 relation
               ]
-              set i i + 1 ; Update the index
+              set i i + 1 ; Then update the first index
             ]
           ]
         ]
@@ -2229,6 +2245,10 @@ to go
     birth
     set age age + 1 ; Age the bats after all processes finished
   ]
+
+  ;show mean-reciprocity-difference
+  ;show mean-random-difference 10
+
   if (count turtles with [color = red] > red_pop_max)
   [
     set red_pop_max count turtles with [color = red]
@@ -2311,6 +2331,7 @@ to go
   ;]
   if ticks = Days
   [ ; If we have gone through Days ticks, stop the program
+    show relationship-matrix
     show "pink count:"
     show count turtles with [color = pink]
     show "magenta count:"
@@ -2327,6 +2348,15 @@ to go
     show count turtles with [color = orange]
     show "red count:"
     show count turtles with [color = red]
+
+    file-open "relations.csv"
+
+    foreach sort turtles [ t ->
+      file-print (word (reduce sentence [relation] of t))
+    ]
+
+    file-close
+
     stop
   ]
 end
@@ -2504,7 +2534,7 @@ modifier
 modifier
 -1
 1
--0.97
+0.0
 0.01
 1
 NIL
@@ -2549,7 +2579,7 @@ discriminatory
 discriminatory
 -25
 100
-70.0
+30.0
 1
 1
 NIL
@@ -3028,13 +3058,8 @@ NetLogo 6.4.0
   <experiment name="experiment" repetitions="1" runMetricsEveryStep="true">
     <setup>setup</setup>
     <go>go</go>
-    <metric>count turtles with [color = pink]</metric>
-    <metric>count turtles with [color = magenta]</metric>
-    <metric>count turtles with [color = violet]</metric>
-    <metric>count turtles with [color = blue]</metric>
-    <metric>count turtles with [color = green]</metric>
-    <metric>count turtles with [color = yellow]</metric>
-    <metric>pop-bust</metric>
+    <metric>mean-reciprocity-difference</metric>
+    <metric>mean-random-difference 50</metric>
     <enumeratedValueSet variable="roost-switch?">
       <value value="true"/>
     </enumeratedValueSet>
@@ -3063,10 +3088,10 @@ NetLogo 6.4.0
       <value value="0"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="modifier">
-      <value value="-1"/>
+      <value value="0"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="discriminatory">
-      <value value="70"/>
+      <value value="30"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="threshold">
       <value value="0"/>
