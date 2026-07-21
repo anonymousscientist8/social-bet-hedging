@@ -3,10 +3,10 @@ rm(list = ls())
 library(tidyverse)
 
 # load data
-d_wins <- read.csv("C:\\Users\\Raven\\social_bet_hedging\\diversifying_wins.csv")
+d_wins <- read.csv("filename\\diversifying_wins.csv")
 example <- rep("(a) empirical roost switching, low food-sharing bias", length(d_wins$day))
 d_wins <- data.frame(d_wins, example)
-f_wins <- read.csv("C:\\Users\\Raven\\social_bet_hedging\\focusing_wins.csv")
+f_wins <- read.csv("filename\\focusing_wins.csv")
 example <- rep("(b) rare roost switching, high food-sharing bias", length(f_wins$day))
 f_wins <- data.frame(f_wins, example)
 df <- rbind(d_wins, f_wins)
