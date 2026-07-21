@@ -8,7 +8,7 @@ rm(list=ls())
 
 #############################################################
 # Load dataframe
-strategies <-  read.csv("C:\\Users\\Raven\\social_bet_hedging\\strategies3.csv")
+strategies <-  read.csv("filename\\strategies3.csv")
 
 # tidy data
 d <- 
