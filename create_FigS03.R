@@ -10,7 +10,7 @@ rm(list=ls())
 #############################################################
 
 # Load dataframe
-strategies <-  read.csv("C:\\Users\\Raven\\social_bet_hedging\\strategies4.csv")
+strategies <-  read.csv("filename\\strategies4.csv")
 
 
 # get data
